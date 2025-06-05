@@ -1,4 +1,5 @@
 CREATE DATABASE ejercicio1;
+--DROP DATABASE IF EXISTS prueba;
 
 USE ejercicio1;
 
