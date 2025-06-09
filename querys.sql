@@ -152,3 +152,41 @@ JOIN   Compuesto_Por comP ON comP.CodMat= pp.CodMat
 JOIN   Articulo a         ON a.CodArt = comP.CodArt
 WHERE a.Precio > 10
 
+/* 15. Listar los números de
+almacenes que tienen todos
+los artículos que incluyen el
+material con código 7. */
+
+SELECT a.Nro FROM Almacen a
+JOIN Tiene t            ON t.Nro = a.Nro
+JOIN Compuesto_Por comP ON comP.CodArt = t.CodArt
+WHERE comP.CodMat = 7
+
+/* 16. Listar los proveedores de
+Capital Federal que sean únicos
+proveedores de algún material. */
+
+WITH cantProv AS (
+SELECT codMat, COUNT(*) AS conteo FROM Provisto_Por
+GROUP BY CodMat
+)
+
+SELECT pp.CodMat, p.Nombre FROM Proveedor p
+JOIN Provisto_Por pp ON pp.CodProv = p.CodProv
+JOIN cantProv cantP ON cantP.CodMat = pp.CodMat
+WHERE cantP.conteo = 1
+
+/* 17. Listar el/los artículo/s de mayor precio. */
+
+SELECT CodArt, Descripcion FROM Articulo
+WHERE Precio = (SELECT MAX(Precio) FROM Articulo)
+
+-- or
+
+WITH NOTPrecios AS (
+    SELECT a.Precio AS menor FROM Articulo a
+    JOIN Articulo n ON NOT a.Precio = n.Precio
+    WHERE a.precio < n.Precio
+)
+SELECT * FROM Articulo
+WHERE Precio NOT IN (SELECT * FROM NOTPrecios)
