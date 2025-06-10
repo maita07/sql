@@ -69,11 +69,11 @@ SELECT Nro FROM Tiene WHERE CodArt = 2
 
 SELECT Nro
 FROM Tiene
-WHERE CodArt = 2
+WHERE CodArt = 1
 AND CodArt IN (
-    SELECT Nro
+    SELECT CodArt
     FROM Tiene
-    WHERE CodArt = 1
+    WHERE CodArt = 2
 ); -- investigar
 
 /* 8. Listar los artículos que 
@@ -86,11 +86,8 @@ SELECT CodArt FROM Compuesto_Por WHERE CodMat = 1
 
 -- or
 
-SELECT A.CodArt
-FROM Articulo AS A
-JOIN
-Compuesto_Por AS C
-ON A.CodArt = C.CodArt
+SELECT A.CodArt FROM Articulo AS A
+JOIN Compuesto_Por AS C ON A.CodArt = C.CodArt
 WHERE Precio > 100 OR CodMat = 1
 
 /* 9. Listar los materiales, código
@@ -185,8 +182,82 @@ WHERE Precio = (SELECT MAX(Precio) FROM Articulo)
 
 WITH NOTPrecios AS (
     SELECT a.Precio AS menor FROM Articulo a
-    JOIN Articulo n ON NOT a.Precio = n.Precio
+    CROSS JOIN Articulo n
     WHERE a.precio < n.Precio
 )
 SELECT * FROM Articulo
 WHERE Precio NOT IN (SELECT * FROM NOTPrecios)
+
+/* 18. Listar el/los artículo/s de menor precio. */
+
+SELECT CodArt, Descripcion From Articulo
+WHERE Articulo.Precio = (SELECT MIN(Articulo.Precio) FROM Articulo)
+
+-- or
+
+WITH notPrecio AS (
+    SELECT distinct a.Precio FROM Articulo a
+    CROSS JOIN Articulo b
+    WHERE a.Precio > b.Precio
+)
+SELECT CodArt, Descripcion FROM Articulo a
+WHERE Precio NOT IN (SELECT * FROM notPrecio)
+
+/* 19. Listar el promedio de precios
+de los artículos en cada almacén. */
+
+SELECT 
+    AVG(art.Precio) AS Promedio,
+    a.Nro
+FROM Almacen a
+JOIN Tiene t ON a.Nro = t.Nro
+JOIN Articulo art ON t.CodArt = art.CodArt
+GROUP BY a.Nro
+
+/* 20. Listar los almacenes que almacenan
+la mayor cantidad de artículos. */
+
+SELECT a.Nro, COUNT(CodArt) as CantArts FROM Almacen a
+JOIN Tiene t ON t.Nro = a.Nro
+GROUP BY a.Nro
+ORDER BY CantArts DESC
+
+-- or
+
+SELECT a.Nro, COUNT(CodArt) AS CantArts FROM Almacen a
+JOIN Tiene t ON t.Nro = a.Nro
+GROUP BY a.Nro
+HAVING COUNT(CodArt) = (
+    SELECT MAX(art_count)
+    FROM (
+        SELECT COUNT(CodArt) AS art_count
+        FROM Tiene
+        GROUP BY Nro
+    ) AS conteos
+)
+
+/* 21. Listar los artículos
+compuestos por al menos 2 materiales. */
+
+SELECT comP.CodArt from Compuesto_Por comP
+GROUP BY comP.CodArt
+HAVING COUNT(comP.CodMat) >= 2
+
+/* 22. Listar los artículos compuestos
+por exactamente 2 materiales */
+
+SELECT comP.CodArt from Compuesto_Por comP
+GROUP BY comP.CodArt
+HAVING COUNT(comP.CodMat) = 2
+
+/* 23. Listar los artículos que estén
+compuestos con hasta 2 materiales. */
+
+SELECT comP.CodArt from Compuesto_Por comP
+GROUP BY comP.CodArt
+HAVING COUNT(comP.CodMat) <= 2
+
+/* 24. Listar los artículos compuestos
+por todos los materiales. */
+
+SELECT CodArt FROM Compuesto_Por
