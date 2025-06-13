@@ -70,8 +70,8 @@ SELECT Nro FROM Tiene WHERE CodArt = 2
 SELECT Nro
 FROM Tiene
 WHERE CodArt = 1
-AND CodArt IN (
-    SELECT CodArt
+AND Nro IN (
+    SELECT Nro
     FROM Tiene
     WHERE CodArt = 2
 ); -- investigar
